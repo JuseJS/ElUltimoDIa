@@ -1,0 +1,74 @@
+# Archivos generados por Unity (2022+)
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+
+# Assets que NO deben ignorarse (comenta estas líneas)
+# /[Aa]ssets/[Tt]extures/
+# /[Aa]ssets/[Mm]aterials/
+# /[Aa]ssets/[Pp]refabs/
+# /[Aa]ssets/[Ss]cenes/
+# /[Aa]ssets/[Ss]cripts/
+# /[Aa]ssets/[Aa]nimations/
+
+# Estas sí se pueden ignorar
+/[Aa]ssets/[Tt]emp/
+/[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/[Pp]lugins*/
+/[Aa]ssets/[Ss]treamingAssets*
+
+# Archivos de proyecto
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# Unity3D generated meta files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity3D Generated File On Crash Reports
+sysinfo.txt
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashlytics generated file
+crashlytics-build.properties
+
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+[Tt]humbs.db
+desktop.ini
+
+# VSCode y Visual Studio
+.vs/
+.vscode/
+*.code-workspace
+
+# Cache de Unity
+/[Ll]ibrary/[Bb]urstCache/
+/[Ll]ibrary/[Ss]criptAssemblies/
+/[Ll]ibrary/[Ss]haderCache/

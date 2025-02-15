@@ -22,6 +22,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI interactionText;
     [SerializeField] private CanvasGroup interactionGroup;
 
+    [Header("Dialogue UI")]
+    [SerializeField] private GameObject dialoguePanel;
+    [SerializeField] private TextMeshProUGUI speakerText;
+    [SerializeField] private TextMeshProUGUI dialogueText;
+
     private void Awake()
     {
         if (Instance == null)
@@ -35,9 +40,10 @@ public class UIManager : MonoBehaviour
         }
 
         // Ocultar todos los grupos al inicio
-        if (missionGroup != null) missionGroup.alpha = 0;
+        if (missionGroup != null) missionGroup.alpha = 1;
         if (messageGroup != null) messageGroup.alpha = 0;
         if (interactionGroup != null) interactionGroup.alpha = 0;
+        if (dialoguePanel != null) dialoguePanel.SetActive(false);
     }
 
     public void UpdateMission(string missionText)
@@ -92,6 +98,24 @@ public class UIManager : MonoBehaviour
         if (interactionGroup != null)
         {
             interactionGroup.alpha = 0;
+        }
+    }
+
+    public void ShowDialogue(string speaker, string text)
+    {
+        if (dialoguePanel != null)
+        {
+            dialoguePanel.SetActive(true);
+            speakerText.text = speaker;
+            dialogueText.text = text;
+        }
+    }
+
+    public void HideDialogue()
+    {
+        if (dialoguePanel != null)
+        {
+            dialoguePanel.SetActive(false);
         }
     }
 }

@@ -10,12 +10,20 @@ public class PlayerInventory : MonoBehaviour
         if (!keys.Contains(key))
         {
             keys.Add(key);
-            //UIManager.Instance.ShowMessage($"Has obtenido: {key.keyName}");
         }
     }
 
     public bool HasKey(KeyType keyType)
     {
         return keys.Exists(key => key.keyType == keyType);
+    }
+
+    public void RemoveKey(KeyType keyType)
+    {
+        Key keyToRemove = keys.Find(key => key.keyType == keyType);
+        if (keyToRemove != null)
+        {
+            keys.Remove(keyToRemove);
+        }
     }
 }

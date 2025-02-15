@@ -31,6 +31,9 @@ public class GameManager : MonoBehaviour
     {
         RemainingTime = gameDuration;
         ChangeGameState(GameState.Playing);
+        
+        // Inicializar la primera misión
+        UIManager.Instance.UpdateMission("Entra en el instituto");
     }
 
     private void Update()

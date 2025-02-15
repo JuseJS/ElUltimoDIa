@@ -19,8 +19,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private float messageDuration = 3f;
 
     [Header("Interaction UI")]
-    [SerializeField] private GameObject interactionTextPrefab;
-    
+    [SerializeField] private TextMeshProUGUI interactionText;
+    [SerializeField] private CanvasGroup interactionGroup;
+
     private void Awake()
     {
         if (Instance == null)
@@ -32,42 +33,26 @@ public class UIManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        // Ocultar todos los grupos al inicio
+        if (missionGroup != null) missionGroup.alpha = 0;
+        if (messageGroup != null) messageGroup.alpha = 0;
+        if (interactionGroup != null) interactionGroup.alpha = 0;
     }
 
     public void UpdateMission(string missionText)
     {
-        currentMissionText.text = missionText;
-        // Opcional: Añadir una animación o efecto cuando la misión cambia
-        StartCoroutine(AnimateMissionUpdate());
-    }
-
-    private IEnumerator AnimateMissionUpdate()
-    {
-        // Fade out
-        float duration = 0.5f;
-        float elapsed = 0f;
-        
-        while (elapsed < duration)
+        if (currentMissionText != null)
         {
-            elapsed += Time.deltaTime;
-            missionGroup.alpha = 1f - (elapsed / duration);
-            yield return null;
+            currentMissionText.text = missionText;
+            if (missionGroup != null) missionGroup.alpha = 1;
         }
-
-        // Fade in
-        elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            missionGroup.alpha = elapsed / duration;
-            yield return null;
-        }
-
-        missionGroup.alpha = 1f;
     }
 
     public void ShowMessage(string message, bool isError = false)
     {
+        if (messageText == null) return;
+
         StopCoroutine(nameof(ShowMessageCoroutine));
         StartCoroutine(ShowMessageCoroutine(message, isError));
     }
@@ -76,51 +61,37 @@ public class UIManager : MonoBehaviour
     {
         messageText.text = message;
         messageText.color = isError ? errorColor : successColor;
-        messageGroup.alpha = 1f;
+        messageText.color = new Color(messageText.color.r, messageText.color.g, messageText.color.b, 1f);
+        messageGroup.alpha = 1;
 
         yield return new WaitForSeconds(messageDuration);
 
         // Fade out
         float elapsed = 0f;
         float fadeDuration = 0.5f;
-        
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
-            messageGroup.alpha = 1f - (elapsed / fadeDuration);
+            messageGroup.alpha = Mathf.Clamp01(1f - (elapsed / fadeDuration));
             yield return null;
         }
-
-        messageGroup.alpha = 0f;
+        messageGroup.alpha = 0;
     }
 
-    public void ShowInteractionText(Vector3 worldPosition, string text)
+    public void ShowInteractionText(string text)
     {
-        // Convertir la posición del mundo a posición de pantalla
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPosition);
-        
-        // Crear el texto de interacción si no existe
-        GameObject interactionText = Instantiate(interactionTextPrefab, transform);
-        interactionText.transform.position = screenPos;
-        
-        TextMeshProUGUI tmpText = interactionText.GetComponent<TextMeshProUGUI>();
-        tmpText.text = text;
-
-        // Añadir un componente para seguir la posición del objeto
-        InteractionTextFollower follower = interactionText.AddComponent<InteractionTextFollower>();
-        follower.Initialize(worldPosition);
-    }
-
-    public void HideInteractionText(Vector3 worldPosition)
-    {
-        // Buscar y destruir el texto de interacción asociado a esta posición
-        InteractionTextFollower[] followers = FindObjectsOfType<InteractionTextFollower>();
-        foreach (var follower in followers)
+        if (interactionText != null)
         {
-            if (Vector3.Distance(follower.TargetPosition, worldPosition) < 0.1f)
-            {
-                Destroy(follower.gameObject);
-            }
+            interactionText.text = text;
+            interactionGroup.alpha = 1;
+        }
+    }
+
+    public void HideInteractionText()
+    {
+        if (interactionGroup != null)
+        {
+            interactionGroup.alpha = 0;
         }
     }
 }

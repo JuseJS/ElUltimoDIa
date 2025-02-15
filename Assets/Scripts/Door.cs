@@ -28,7 +28,7 @@ public class Door : MonoBehaviour, IInteractable
         else
         {
             // Mostrar mensaje de que necesitas la llave correcta
-            //UIManager.Instance.ShowMessage("Necesitas la llave correcta para abrir esta puerta.");
+            UIManager.Instance.ShowMessage("Necesitas la llave correcta para abrir esta puerta.");
         }
     }
 

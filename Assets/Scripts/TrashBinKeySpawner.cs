@@ -9,7 +9,7 @@ public class TrashBinKeySpawner : MonoBehaviour
     {
         if (trashBins == null || trashBins.Length == 0)
         {
-            Debug.LogError("No hay cubos de basura asignados al TrashBinKeySpawner");
+            Debug.LogError("No hay cubos de basura asignados al TrashBinKeySpawner"); // prueba
             return;
         }
 

@@ -1,43 +1,42 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-namespace DoorScript
+﻿using UnityEngine;
+
+public class Door : MonoBehaviour, IInteractable
 {
-	[RequireComponent(typeof(AudioSource))]
+    public KeyType requiredKeyType;
+    public bool isLocked = true;
+    private Animator animator;
 
+    private void Awake()
+    {
+        animator = GetComponent<Animator>();
+    }
 
-public class Door : MonoBehaviour {
-	public bool open;
-	public float smooth = 1.0f;
-	float DoorOpenAngle = -90.0f;
-    float DoorCloseAngle = 0.0f;
-	public AudioSource asource;
-	public AudioClip openDoor,closeDoor;
-	// Use this for initialization
-	void Start () {
-		asource = GetComponent<AudioSource> ();
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		if (open)
-		{
-            var target = Quaternion.Euler (0, DoorOpenAngle, 0);
-            transform.localRotation = Quaternion.Slerp(transform.localRotation, target, Time.deltaTime * 5 * smooth);
-	
-		}
-		else
-		{
-            var target1= Quaternion.Euler (0, DoorCloseAngle, 0);
-            transform.localRotation = Quaternion.Slerp(transform.localRotation, target1, Time.deltaTime * 5 * smooth);
-	
-		}  
-	}
+    public void Interact(PlayerInventory playerInventory)
+    {
+        if (!isLocked)
+        {
+            // La puerta ya está desbloqueada, solo ábrela
+            ToggleDoor();
+            return;
+        }
 
-	public void OpenDoor(){
-		open =!open;
-		asource.clip = open?openDoor:closeDoor;
-		asource.Play ();
-	}
-}
+        if (playerInventory.HasKey(requiredKeyType))
+        {
+            isLocked = false;
+            ToggleDoor();
+        }
+        else
+        {
+            // Mostrar mensaje de que necesitas la llave correcta
+            //UIManager.Instance.ShowMessage("Necesitas la llave correcta para abrir esta puerta.");
+        }
+    }
+
+    private void ToggleDoor()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger("Toggle");
+        }
+    }
 }

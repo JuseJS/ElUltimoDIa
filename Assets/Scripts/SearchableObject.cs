@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SearchableObject : MonoBehaviour, IInteractable
 {
+    [SerializeField] private MissionData gameMissions;
     private bool containsKey = false;
     private Key keyToFind;
     private bool hasBeenSearched = false;
@@ -19,11 +20,8 @@ public class SearchableObject : MonoBehaviour, IInteractable
 
     public void Interact(PlayerInventory playerInventory)
     {
-        Debug.Log($"Interactuando con {gameObject.name}");
-
         if (hasBeenSearched)
         {
-            Debug.Log($"Objeto {gameObject.name} ya fue buscado anteriormente");
             UIManager.Instance.ShowMessage("Ya has buscado aquí", true);
             return;
         }
@@ -32,15 +30,20 @@ public class SearchableObject : MonoBehaviour, IInteractable
 
         if (containsKey && keyToFind != null)
         {
-            Debug.Log($"¡Llave encontrada en {gameObject.name}! Tipo: {keyToFind.keyType}");
             playerInventory.AddKey(keyToFind);
             UIManager.Instance.ShowMessage(successMessage);
             KeySearchManager.Instance.RegisterKeyFound(keyToFind.name);
-            UpdateMissionBasedOnKey();
+
+            // Verificar si esta llave completa la misión actual
+            var currentMission = MissionManager.Instance.CurrentMission;
+            if ((currentMission == gameMissions.findMainKeyMission && keyToFind.keyType == KeyType.MainDoor) ||
+                (currentMission == gameMissions.findClassroomKeyMission && keyToFind.keyType == KeyType.ClassroomDoor))
+            {
+                MissionManager.Instance.CompleteMission();
+            }
         }
         else
         {
-            Debug.Log($"No se encontró llave en {gameObject.name}. containsKey: {containsKey}, keyToFind: {keyToFind}");
             UIManager.Instance.ShowMessage(failMessage, true);
         }
     }
@@ -49,11 +52,11 @@ public class SearchableObject : MonoBehaviour, IInteractable
     {
         if (keyToFind.keyType == KeyType.MainDoor)
         {
-            UIManager.Instance.UpdateMission("Dirígete a secretaría");
+            MissionManager.Instance.StartMission(gameMissions.enterSchoolMission);
         }
         else if (keyToFind.keyType == KeyType.ClassroomDoor)
         {
-            UIManager.Instance.UpdateMission("Vuelve a hablar con la secretaria");
+            MissionManager.Instance.StartMission(gameMissions.accessComputerMission);
         }
     }
 }

@@ -3,6 +3,9 @@ using System.Collections;
 
 public class SecretaryNPC : MonoBehaviour, IInteractable
 {
+    [Header("Referencias")]
+    [SerializeField] private MissionData gameMissions;
+    
     [Header("Dialogue Data")]
     [SerializeField] private DialogueData initialDialogue;
     [SerializeField] private DialogueData searchKeyDialogue;
@@ -10,9 +13,6 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
     [SerializeField] private DialogueData taskCompletedDialogue;
 
     private UIManager uiManager;
-    private bool hasGivenMainKey = false;
-    private bool hasClassroomKey = false;
-    private bool hasCompletedTask = false;
     private bool isInDialogue = false;
     private PlayerInventory playerInventory;
 
@@ -36,19 +36,22 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
 
     private DialogueData DetermineDialogue()
     {
-        if (!hasGivenMainKey && playerInventory.HasKey(KeyType.MainDoor))
+        Mission currentMission = MissionManager.Instance.CurrentMission;
+
+        if (currentMission == gameMissions.talkToSecretaryMission && playerInventory.HasKey(KeyType.MainDoor))
         {
             return initialDialogue;
         }
-        else if (playerInventory.HasKey(KeyType.ClassroomDoor) && !hasCompletedTask)
-        {
-            return foundKeyDialogue;
-        }
-        else if (hasGivenMainKey && !playerInventory.HasKey(KeyType.ClassroomDoor))
+        else if (currentMission == gameMissions.findClassroomKeyMission)
         {
             return searchKeyDialogue;
         }
-        else if (hasCompletedTask)
+        else if (currentMission == gameMissions.accessComputerMission && playerInventory.HasKey(KeyType.ClassroomDoor))
+        {
+            return foundKeyDialogue;
+        }
+        else if (currentMission == gameMissions.submitWorkMission || 
+                 currentMission == gameMissions.returnKeykMission)
         {
             return taskCompletedDialogue;
         }
@@ -84,37 +87,30 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
                 if (playerInventory.HasKey(KeyType.MainDoor))
                 {
                     playerInventory.RemoveKey(KeyType.MainDoor);
-                    hasGivenMainKey = true;
+                    MissionManager.Instance.CompleteMission();
                     uiManager.ShowMessage("Has entregado la llave principal a la secretaria");
                 }
                 break;
 
             case DialogueAction.StartClassroomKeyMission:
-                uiManager.UpdateMission("Encuentra la llave de la clase");
+                uiManager.ShowMessage("Busca la llave del aula de informática");
                 break;
 
             case DialogueAction.StartGoToClassMission:
-                uiManager.UpdateMission("Dirígete al aula de informática");
-                uiManager.ShowMessage("La secretaria te ha dado acceso a la clase", false);
+                if (MissionManager.Instance.CurrentMission == gameMissions.accessComputerMission)
+                {
+                    uiManager.ShowMessage("Puedes acceder al aula de informática");
+                }
                 break;
 
             case DialogueAction.CompleteGame:
-                if (playerInventory.HasKey(KeyType.ClassroomDoor))
+                if (MissionManager.Instance.CurrentMission == gameMissions.returnKeykMission)
                 {
                     playerInventory.RemoveKey(KeyType.ClassroomDoor);
+                    MissionManager.Instance.CompleteMission();
                     GameManager.Instance.GameOver(true);
                 }
                 break;
         }
-    }
-
-    public void SetHasClassroomKey(bool value)
-    {
-        hasClassroomKey = value;
-    }
-
-    public void SetTaskCompleted(bool value)
-    {
-        hasCompletedTask = value;
     }
 }

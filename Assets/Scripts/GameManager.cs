@@ -31,9 +31,6 @@ public class GameManager : MonoBehaviour
     {
         RemainingTime = gameDuration;
         ChangeGameState(GameState.Playing);
-        
-        // Inicializar la primera misión
-        UIManager.Instance.UpdateMission("Busca la llave en los contenedores");
     }
 
     private void Update()

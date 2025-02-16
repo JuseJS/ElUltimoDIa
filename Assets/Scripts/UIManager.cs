@@ -46,6 +46,33 @@ public class UIManager : MonoBehaviour
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
     }
 
+    private void Start()
+    {
+        // Suscribirse a eventos del MissionManager
+        MissionManager.Instance.OnMissionStarted += HandleMissionStarted;
+        MissionManager.Instance.OnMissionCompleted += HandleMissionCompleted;
+    }
+
+    private void OnDestroy()
+    {
+        // Desuscribirse de eventos
+        if (MissionManager.Instance != null)
+        {
+            MissionManager.Instance.OnMissionStarted -= HandleMissionStarted;
+            MissionManager.Instance.OnMissionCompleted -= HandleMissionCompleted;
+        }
+    }
+
+    private void HandleMissionStarted(Mission mission)
+    {
+        UpdateMission(mission.description);
+    }
+
+    private void HandleMissionCompleted(Mission mission)
+    {
+        ShowMessage($"Misión completada: {mission.description}", false);
+    }
+
     public void UpdateMission(string missionText)
     {
         if (currentMissionText != null)

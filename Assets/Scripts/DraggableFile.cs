@@ -2,20 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using System;
 
 public class DraggableFile : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private TextMeshProUGUI fileNameText;
-    [SerializeField] private Image iconImage;
     [SerializeField] private string fileName;
-
+    
+    public string FileName => fileName;
+    
+    public event Action<DraggableFile> OnDragStarted;
+    public event Action<DraggableFile> OnDragEnded;
+    
     private RectTransform rectTransform;
     private Vector2 originalPosition;
     private CanvasGroup canvasGroup;
 
-    public string FileName => fileName;
-
-    public void Initialize()
+    private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
@@ -31,6 +34,7 @@ public class DraggableFile : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         canvasGroup.alpha = 0.6f;
         canvasGroup.blocksRaycasts = false;
+        OnDragStarted?.Invoke(this);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -42,11 +46,17 @@ public class DraggableFile : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
+        OnDragEnded?.Invoke(this);
         
-        // Si no se soltó en una zona válida, volver a la posición original
-        if (!eventData.pointerEnter || !eventData.pointerEnter.GetComponent<SubmissionZone>())
+        // Si no se soltó en la zona de drop, volver a la posición original
+        if (!eventData.pointerEnter || !eventData.pointerEnter.GetComponent<DropZone>())
         {
-            rectTransform.anchoredPosition = originalPosition;
+            ResetPosition();
         }
+    }
+
+    public void ResetPosition()
+    {
+        rectTransform.anchoredPosition = originalPosition;
     }
 }

@@ -24,10 +24,10 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
     public void Interact(PlayerInventory inventory)
     {
         if (isInDialogue) return;
-        
+
         playerInventory = inventory;
         DialogueData currentDialogue = DetermineDialogue();
-        
+
         if (currentDialogue != null)
         {
             StartCoroutine(PlayDialogue(currentDialogue));
@@ -40,35 +40,35 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
         {
             return initialDialogue;
         }
-        else if (hasGivenMainKey && !hasClassroomKey)
-        {
-            return searchKeyDialogue;
-        }
-        else if (hasClassroomKey && !hasCompletedTask)
+        else if (playerInventory.HasKey(KeyType.ClassroomDoor) && !hasCompletedTask)
         {
             return foundKeyDialogue;
+        }
+        else if (hasGivenMainKey && !playerInventory.HasKey(KeyType.ClassroomDoor))
+        {
+            return searchKeyDialogue;
         }
         else if (hasCompletedTask)
         {
             return taskCompletedDialogue;
         }
-        
+
         return null;
     }
 
     private IEnumerator PlayDialogue(DialogueData dialogue)
     {
         isInDialogue = true;
+        Input.ResetInputAxes();
 
         foreach (var line in dialogue.lines)
         {
             uiManager.ShowDialogue(line.speaker, line.text);
-            
-            // Esperar input del jugador para continuar
+
+            yield return new WaitForSeconds(0.1f);
             yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.E));
-            yield return new WaitForSeconds(0.2f); // Pequeña pausa entre líneas
-            
-            // Procesar acciones especiales
+            yield return new WaitForSeconds(0.2f);
+
             ProcessDialogueAction(line.action);
         }
 

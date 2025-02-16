@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
         ChangeGameState(GameState.Playing);
         
         // Inicializar la primera misión
-        UIManager.Instance.UpdateMission("Entra en el instituto");
+        UIManager.Instance.UpdateMission("Busca la llave en los contenedores");
     }
 
     private void Update()

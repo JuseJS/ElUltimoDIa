@@ -70,7 +70,7 @@ public class UIManager : MonoBehaviour
 
     private void HandleMissionCompleted(Mission mission)
     {
-        ShowMessage($"Misión completada: {mission.description}", false);
+        ShowMessage($"Misión completada", false);
     }
 
     public void UpdateMission(string missionText)

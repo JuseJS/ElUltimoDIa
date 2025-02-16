@@ -9,6 +9,8 @@ public class MissionManager : MonoBehaviour
     public event Action<Mission> OnMissionCompleted;
     
     [SerializeField] private MissionData gameMissions;
+    [SerializeField] private AudioClip missionCompletedSound;
+    private AudioSource audioSource;
     
     public Mission CurrentMission { get; private set; }
 
@@ -18,11 +20,18 @@ public class MissionManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            InitializeAudio();
         }
         else
         {
             Destroy(gameObject);
         }
+    }
+
+    private void InitializeAudio()
+    {
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
     }
 
     private void Start()
@@ -45,7 +54,12 @@ public class MissionManager : MonoBehaviour
         if (CurrentMission == null) return;
 
         OnMissionCompleted?.Invoke(CurrentMission);
-        UIManager.Instance.ShowMessage(CurrentMission.completionMessage);
+        
+        // Reproducir sonido de misión completada
+        if (audioSource != null && missionCompletedSound != null)
+        {
+            audioSource.PlayOneShot(missionCompletedSound);
+        }
 
         if (CurrentMission.nextMission != null)
         {

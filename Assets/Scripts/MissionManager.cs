@@ -1,17 +1,17 @@
 using UnityEngine;
 using System;
 
-public class MissionManager : MonoBehaviour 
+public class MissionManager : MonoBehaviour
 {
     public static MissionManager Instance { get; private set; }
 
     public event Action<Mission> OnMissionStarted;
     public event Action<Mission> OnMissionCompleted;
-    
+
     [SerializeField] private MissionData gameMissions;
     [SerializeField] private AudioClip missionCompletedSound;
     private AudioSource audioSource;
-    
+
     public Mission CurrentMission { get; private set; }
 
     private void Awake()
@@ -30,20 +30,28 @@ public class MissionManager : MonoBehaviour
 
     private void InitializeAudio()
     {
-        audioSource = gameObject.AddComponent<AudioSource>();
-        audioSource.playOnAwake = false;
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
+
+        AudioListener listener = gameObject.GetComponent<AudioListener>();
+        if (listener != null)
+        {
+            Destroy(listener);
+        }
     }
 
-    private void Start()
+    public void InitializeMissions()
     {
-        // Iniciar con la primera misión
         StartMission(gameMissions.findMainKeyMission);
     }
 
     public void StartMission(Mission mission)
     {
         if (mission == null) return;
-        
+
         CurrentMission = mission;
         OnMissionStarted?.Invoke(CurrentMission);
         UIManager.Instance.UpdateMission(CurrentMission.description);
@@ -54,7 +62,7 @@ public class MissionManager : MonoBehaviour
         if (CurrentMission == null) return;
 
         OnMissionCompleted?.Invoke(CurrentMission);
-        
+
         // Reproducir sonido de misión completada
         if (audioSource != null && missionCompletedSound != null)
         {

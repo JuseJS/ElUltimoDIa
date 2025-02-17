@@ -16,9 +16,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private CanvasGroup messageGroup;
     [SerializeField] private Color successColor = Color.green;
     [SerializeField] private Color errorColor = Color.red;
-    [SerializeField] private float messageDuration = 1.5f;
-    [SerializeField] private float fadeInDuration = 0.2f;
-    [SerializeField] private float fadeOutDuration = 0.5f;
+    [SerializeField] private float messageDuration = 3f;
 
     [Header("Interaction UI")]
     [SerializeField] private TextMeshProUGUI interactionText;
@@ -51,31 +49,6 @@ public class UIManager : MonoBehaviour
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
     }
 
-    private void Start()
-    {
-        MissionManager.Instance.OnMissionStarted += HandleMissionStarted;
-        MissionManager.Instance.OnMissionCompleted += HandleMissionCompleted;
-    }
-
-    private void OnDestroy()
-    {
-        if (MissionManager.Instance != null)
-        {
-            MissionManager.Instance.OnMissionStarted -= HandleMissionStarted;
-            MissionManager.Instance.OnMissionCompleted -= HandleMissionCompleted;
-        }
-    }
-
-    private void HandleMissionStarted(Mission mission)
-    {
-        UpdateMission(mission.description);
-    }
-
-    private void HandleMissionCompleted(Mission mission)
-    {
-        ShowMessage("Misión completada", false);
-    }
-
     public void UpdateMission(string missionText)
     {
         if (currentMissionText != null)
@@ -89,48 +62,59 @@ public class UIManager : MonoBehaviour
     {
         if (messageText == null || messageGroup == null) return;
 
+        // Si hay una corrutina en curso, la detenemos
         if (currentMessageCoroutine != null)
         {
             StopCoroutine(currentMessageCoroutine);
+            currentMessageCoroutine = null;
         }
 
+        // Iniciamos la nueva corrutina y guardamos su referencia
         currentMessageCoroutine = StartCoroutine(ShowMessageCoroutine(message, isError));
     }
 
     private IEnumerator ShowMessageCoroutine(string message, bool isError)
     {
+        // Asegurar que el mensaje sea visible inmediatamente
+        messageGroup.alpha = 1;
         messageText.text = message;
         messageText.color = isError ? errorColor : successColor;
 
-        float elapsedTime = 0;
-        messageGroup.alpha = 0;
-        
-        while (elapsedTime < fadeInDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            messageGroup.alpha = Mathf.Lerp(0, 1, elapsedTime / fadeInDuration);
-            yield return null;
-        }
-        messageGroup.alpha = 1;
-
+        // Esperar la duración del mensaje
         yield return new WaitForSeconds(messageDuration);
 
         // Fade out
-        elapsedTime = 0;
-        while (elapsedTime < fadeOutDuration)
+        float elapsed = 0f;
+        float fadeDuration = 0.5f;
+        
+        Color startColor = messageText.color;
+        while (elapsed < fadeDuration)
         {
-            elapsedTime += Time.deltaTime;
-            messageGroup.alpha = Mathf.Lerp(1, 0, elapsedTime / fadeOutDuration);
+            elapsed += Time.deltaTime;
+            float normalizedTime = elapsed / fadeDuration;
+            
+            messageGroup.alpha = Mathf.Lerp(1f, 0f, normalizedTime);
+            messageText.color = new Color(
+                startColor.r,
+                startColor.g,
+                startColor.b,
+                Mathf.Lerp(1f, 0f, normalizedTime)
+            );
+            
             yield return null;
         }
-        messageGroup.alpha = 0;
 
+        // Asegurar que el mensaje esté completamente oculto
+        messageGroup.alpha = 0;
+        messageText.color = new Color(startColor.r, startColor.g, startColor.b, 0);
+        
+        // Limpiar la referencia de la corrutina
         currentMessageCoroutine = null;
     }
 
     public void ShowInteractionText(string text)
     {
-        if (interactionText != null && interactionGroup != null)
+        if (interactionText != null)
         {
             interactionText.text = text;
             interactionGroup.alpha = 1;
@@ -150,8 +134,8 @@ public class UIManager : MonoBehaviour
         if (dialoguePanel != null)
         {
             dialoguePanel.SetActive(true);
-            if (speakerText != null) speakerText.text = speaker;
-            if (dialogueText != null) dialogueText.text = text;
+            speakerText.text = speaker;
+            dialogueText.text = text;
         }
     }
 

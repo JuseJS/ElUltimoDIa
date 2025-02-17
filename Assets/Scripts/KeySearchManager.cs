@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class KeySearchManager : MonoBehaviour
 {
     public static KeySearchManager Instance { get; private set; }
+    private bool isInitialized = false;
 
     [SerializeField] private KeySpawnData[] searchAreas;
     private Dictionary<string, GameObject> keyLocations = new Dictionary<string, GameObject>();
@@ -18,11 +19,19 @@ public class KeySearchManager : MonoBehaviour
                 transform.SetParent(null);
             }
             DontDestroyOnLoad(gameObject);
-            InitializeSearchAreas();
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    public void InitializeGame()
+    {
+        if (!isInitialized)
+        {
+            InitializeSearchAreas();
+            isInitialized = true;
         }
     }
 

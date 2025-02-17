@@ -30,30 +30,22 @@ public class SearchableObject : MonoBehaviour, IInteractable
 
         if (containsKey && keyToFind != null)
         {
-            // Si es la llave del aula y la misión actual no es findClassroomKeyMission
-            if (keyToFind.keyType == KeyType.ClassroomDoor && 
-                MissionManager.Instance.CurrentMission != gameMissions.findClassroomKeyMission)
-            {
-                UIManager.Instance.ShowMessage("Has encontrado una llave, pero deberías hablar primero con la secretaria", true);
-                hasBeenSearched = false;
-                return;
-            }
-
             playerInventory.AddKey(keyToFind);
             UIManager.Instance.ShowMessage(successMessage);
             KeySearchManager.Instance.RegisterKeyFound(keyToFind.name);
 
-            // Solo completar la misión si es la llave principal
-            if (MissionManager.Instance.CurrentMission == gameMissions.findMainKeyMission && 
-                keyToFind.keyType == KeyType.MainDoor)
+            // Verificar si esta llave completa la misión actual
+            var currentMission = MissionManager.Instance.CurrentMission;
+            if ((currentMission == gameMissions.findMainKeyMission && keyToFind.keyType == KeyType.MainDoor) ||
+                (currentMission == gameMissions.findClassroomKeyMission && keyToFind.keyType == KeyType.ClassroomDoor))
             {
                 MissionManager.Instance.CompleteMission();
-            }
-            // Para la llave del aula, solo mostrar un mensaje
-            else if (keyToFind.keyType == KeyType.ClassroomDoor && 
-                     MissionManager.Instance.CurrentMission == gameMissions.findClassroomKeyMission)
-            {
-                UIManager.Instance.ShowMessage("¡Has encontrado la llave del aula! Vuelve con la secretaria.");
+                
+                // Solo para la llave principal, iniciar la siguiente misión
+                if (keyToFind.keyType == KeyType.MainDoor)
+                {
+                    MissionManager.Instance.StartMission(gameMissions.enterSchoolMission);
+                }
             }
         }
         else

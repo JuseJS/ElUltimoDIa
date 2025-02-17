@@ -7,7 +7,7 @@ public class PlayerInteraction : MonoBehaviour
     [Header("Interaction Settings")]
     [SerializeField] private float interactionRadius = 2f;
     [SerializeField] private KeyCode interactionKey = KeyCode.E;
-    [SerializeField] private Transform interactionCenter; // Punto desde donde se detecta la interacción
+    [SerializeField] private Transform interactionCenter;
 
     private PlayerInventory inventory;
     private IInteractable currentInteractable;
@@ -18,7 +18,6 @@ public class PlayerInteraction : MonoBehaviour
     {
         inventory = GetComponent<PlayerInventory>();
 
-        // Si no se asignó un centro de interacción, usar el transform del jugador
         if (interactionCenter == null)
         {
             interactionCenter = transform;
@@ -27,7 +26,11 @@ public class PlayerInteraction : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.CurrentGameState != GameState.Playing) return;
+        // Verificar que GameManager existe y que estamos en estado Playing
+        if (GameManager.Instance == null || GameManager.Instance.CurrentGameState != GameState.Playing) 
+        {
+            return;
+        }
 
         CheckForInteractables();
         HandleInteractionInput();
@@ -55,7 +58,11 @@ public class PlayerInteraction : MonoBehaviour
         {
             if (currentInteractable != null)
             {
-                UIManager.Instance.HideInteractionText(); // ✅ Corrección clave (sin parámetros)
+                // Verificar que UIManager existe antes de llamar a HideInteractionText
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.HideInteractionText();
+                }
                 currentInteractable = null;
                 currentInteractableTransform = null;
             }
@@ -85,21 +92,24 @@ public class PlayerInteraction : MonoBehaviour
         // Si encontramos un nuevo interactable más cercano
         if (closestInteractable != currentInteractable)
         {
-            if (currentInteractable != null)
+            // Verificar que UIManager existe antes de llamar a sus métodos
+            if (UIManager.Instance != null)
             {
-                UIManager.Instance.HideInteractionText();
-            }
+                if (currentInteractable != null)
+                {
+                    UIManager.Instance.HideInteractionText();
+                }
 
-            currentInteractable = closestInteractable;
-            currentInteractableTransform = closestTransform;
+                currentInteractable = closestInteractable;
+                currentInteractableTransform = closestTransform;
 
-            if (currentInteractable != null)
-            {
-                MonoBehaviour mb = currentInteractable as MonoBehaviour;
-                InteractionPrompt prompt = mb.GetComponent<InteractionPrompt>();
-                string interactionText = prompt != null ? prompt.promptText : "Pulsa E para interactuar";
-
-                UIManager.Instance.ShowInteractionText(interactionText);
+                if (currentInteractable != null)
+                {
+                    MonoBehaviour mb = currentInteractable as MonoBehaviour;
+                    InteractionPrompt prompt = mb.GetComponent<InteractionPrompt>();
+                    string interactionText = prompt != null ? prompt.promptText : "Pulsa E para interactuar";
+                    UIManager.Instance.ShowInteractionText(interactionText);
+                }
             }
         }
     }
@@ -113,7 +123,6 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-    // Visualización en el editor para debug
     private void OnDrawGizmos()
     {
         if (interactionCenter != null)

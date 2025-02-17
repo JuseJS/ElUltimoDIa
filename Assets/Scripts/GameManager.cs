@@ -12,13 +12,14 @@ public class GameManager : MonoBehaviour
     [Header("Game Settings")]
     [SerializeField] private float gameDuration = 1200f;
     [SerializeField] private MissionData missionData;
-    
+
     public GameState CurrentGameState { get; private set; }
     public float RemainingTime { get; private set; }
     public event Action<GameState> OnGameStateChanged;
     public event Action<float> OnTimeUpdated;
 
     private int completedMissions = 0;
+    private bool isGameInitialized = false;
 
     private void Awake()
     {
@@ -26,7 +27,20 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            InitializeGame();
+
+            // Verificar y eliminar AudioListeners adicionales
+            AudioListener[] listeners = FindObjectsOfType<AudioListener>();
+            if (listeners.Length > 1)
+            {
+                Debug.LogWarning("Multiple AudioListeners found in the scene. Keeping only one.");
+                for (int i = 1; i < listeners.Length; i++)
+                {
+                    Destroy(listeners[i]);
+                }
+            }
+
+            // Suscribirse al evento de cambio de escena
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -34,22 +48,39 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Solo inicializar si es la escena del juego y no está ya inicializado
+        if (scene.name != "MainMenu" && !isGameInitialized)
+        {
+            InitializeGame();
+        }
+    }
+
     private void InitializeGame()
     {
+        isGameInitialized = true;
         RemainingTime = gameDuration;
         completedMissions = 0;
         ChangeGameState(GameState.Playing);
-        
-        // Suscribirse al evento de misión completada
+
+        // Inicializar otros managers
+        if (KeySearchManager.Instance != null)
+        {
+            KeySearchManager.Instance.InitializeGame();
+        }
+
         if (MissionManager.Instance != null)
         {
             MissionManager.Instance.OnMissionCompleted += HandleMissionCompleted;
+            MissionManager.Instance.InitializeMissions();
         }
+
+        Debug.Log("Game initialized with duration: " + gameDuration);
     }
 
     private void OnDestroy()
     {
-        // Desuscribirse de eventos al destruir
         if (MissionManager.Instance != null)
         {
             MissionManager.Instance.OnMissionCompleted -= HandleMissionCompleted;
@@ -60,7 +91,7 @@ public class GameManager : MonoBehaviour
     {
         completedMissions++;
         Debug.Log($"Misión completada. Total: {completedMissions}");
-        
+
         if (mission.nextMission == null)
         {
             GameOver(true);
@@ -89,15 +120,15 @@ public class GameManager : MonoBehaviour
     public void GameOver(bool victory)
     {
         ChangeGameState(victory ? GameState.Victory : GameState.GameOver);
-        
+
         string timeLeft = FormatTimeLeft(RemainingTime);
         string missionsCompleted = $"{completedMissions}/6";
-        
+
         endGameScreen.SetupButtons(
             () => RestartGame(),
             () => ReturnToMenu()
         );
-        
+
         endGameScreen.Show(victory, timeLeft, missionsCompleted);
     }
 
@@ -137,35 +168,35 @@ public class GameManager : MonoBehaviour
     {
         // Asegurarse de que el tiempo esté normalizado
         Time.timeScale = 1f;
-        
+
         // Ocultar la pantalla de fin de juego
         if (endGameScreen != null)
         {
             endGameScreen.Hide();
         }
-        
+
         // Restablecer el estado del juego
         RemainingTime = gameDuration;
         completedMissions = 0;
         ChangeGameState(GameState.Playing);
-        
+
         // Reiniciar el KeySearchManager
         if (KeySearchManager.Instance != null)
         {
             Destroy(KeySearchManager.Instance.gameObject);
         }
-        
+
         // Reiniciar el MissionManager
         if (MissionManager.Instance != null)
         {
             Destroy(MissionManager.Instance.gameObject);
         }
-        
+
         // Recargar la escena actual
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name);
     }
-    
+
     private void ReturnToMenu()
     {
         Time.timeScale = 1f;
@@ -173,6 +204,6 @@ public class GameManager : MonoBehaviour
         {
             endGameScreen.Hide();
         }
-        //SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("MainMenu");
     }
 }

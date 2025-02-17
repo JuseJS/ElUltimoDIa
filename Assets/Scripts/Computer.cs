@@ -1,4 +1,4 @@
-using CharacterScript;
+
 using UnityEngine;
 using UnityEngine.UI;
 using Cinemachine;
@@ -21,10 +21,10 @@ public class Computer : MonoBehaviour, IInteractable
     [Header("Mission Data")]
     [SerializeField] private MissionData gameMissions;
     
-    private FPSController playerController;
     private DraggableFile currentDraggedFile;
     private DraggableFile droppedFile;
     private float originalCameraSpeed;
+    private bool cameraWasActive;
 
     private void Start()
     {
@@ -104,20 +104,10 @@ public class Computer : MonoBehaviour, IInteractable
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
         
-        if (playerController == null)
-        {
-            playerController = FindObjectOfType<FPSController>();
-        }
-        
-        if (playerController != null)
-        {
-            playerController.canMove = false;
-        }
-        
         if (freeLookCamera != null)
         {
-            freeLookCamera.m_XAxis.m_MaxSpeed = 0f;
-            freeLookCamera.m_YAxis.m_MaxSpeed = 0f;
+            cameraWasActive = freeLookCamera.enabled;
+            freeLookCamera.enabled = false; // Desactivar la cámara de Cinemachine
         }
     }
 
@@ -129,15 +119,9 @@ public class Computer : MonoBehaviour, IInteractable
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         
-        if (playerController != null)
-        {
-            playerController.canMove = true;
-        }
-        
         if (freeLookCamera != null)
         {
-            freeLookCamera.m_XAxis.m_MaxSpeed = originalCameraSpeed;
-            freeLookCamera.m_YAxis.m_MaxSpeed = 0;
+            freeLookCamera.enabled = cameraWasActive; // Restaurar estado previo de la cámara
         }
         
         // Limpiar estado
@@ -168,7 +152,6 @@ public class Computer : MonoBehaviour, IInteractable
     {
         Debug.Log("Computer: Iniciando proceso de envío");
         
-        // Usamos droppedFile en lugar de currentDraggedFile
         if (droppedFile == null)
         {
             Debug.LogError("Computer: No hay archivo para enviar");

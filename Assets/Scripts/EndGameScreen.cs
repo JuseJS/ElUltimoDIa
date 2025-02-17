@@ -37,11 +37,14 @@ public class EndGameScreen : MonoBehaviour
 
     private void Awake()
     {
-        canvasGroup.alpha = 0;
-        gameObject.SetActive(false);
-        
-        // Configurar TextMeshPro para mantener el layout
-        ConfigureTextComponents();
+        if (gameObject.activeSelf)
+        {
+            gameObject.SetActive(false);
+        }
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0;
+        }
     }
 
     private void ConfigureTextComponents()

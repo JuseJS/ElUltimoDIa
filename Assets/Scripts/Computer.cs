@@ -10,17 +10,17 @@ public class Computer : MonoBehaviour, IInteractable
     [SerializeField] private Button shutdownButton;
     [SerializeField] private Button submitButton;
     [SerializeField] private GameObject dropZone;
-    
+
     [Header("Camera Control")]
     [SerializeField] private CinemachineFreeLook freeLookCamera;
-    
+
     [Header("Files")]
     [SerializeField] private DraggableFile[] draggableFiles;
     [SerializeField] private string correctFileName = "Trabajo_Final.doc";
-    
+
     [Header("Mission Data")]
     [SerializeField] private MissionData gameMissions;
-    
+
     private DraggableFile currentDraggedFile;
     private DraggableFile droppedFile;
     private float originalCameraSpeed;
@@ -29,13 +29,13 @@ public class Computer : MonoBehaviour, IInteractable
     private void Start()
     {
         Debug.Log("Computer: Iniciando configuración");
-        
+
         computerScreen.SetActive(false);
-        
+
         shutdownButton.onClick.AddListener(ShutdownComputer);
         submitButton.onClick.AddListener(HandleSubmission);
         submitButton.interactable = false;
-        
+
         foreach (var file in draggableFiles)
         {
             if (file != null)
@@ -44,18 +44,18 @@ public class Computer : MonoBehaviour, IInteractable
                 file.OnDragEnded += HandleFileDragEnded;
             }
         }
-        
+
         var dropZoneComponent = dropZone.GetComponent<DropZone>();
         if (dropZoneComponent != null)
         {
             dropZoneComponent.OnFileDropped += HandleFileDropped;
         }
-        
+
         if (freeLookCamera == null)
         {
             freeLookCamera = FindObjectOfType<CinemachineFreeLook>();
         }
-        
+
         if (freeLookCamera != null)
         {
             originalCameraSpeed = freeLookCamera.m_XAxis.m_MaxSpeed;
@@ -66,7 +66,7 @@ public class Computer : MonoBehaviour, IInteractable
     {
         if (shutdownButton != null) shutdownButton.onClick.RemoveListener(ShutdownComputer);
         if (submitButton != null) submitButton.onClick.RemoveListener(HandleSubmission);
-        
+
         foreach (var file in draggableFiles)
         {
             if (file != null)
@@ -75,7 +75,7 @@ public class Computer : MonoBehaviour, IInteractable
                 file.OnDragEnded -= HandleFileDragEnded;
             }
         }
-        
+
         var dropZoneComponent = dropZone?.GetComponent<DropZone>();
         if (dropZoneComponent != null)
         {
@@ -86,24 +86,24 @@ public class Computer : MonoBehaviour, IInteractable
     public void Interact(PlayerInventory playerInventory)
     {
         Debug.Log("Computer: Interacción iniciada");
-        
-        if (MissionManager.Instance != null && gameMissions != null && 
+
+        if (MissionManager.Instance != null && gameMissions != null &&
             MissionManager.Instance.CurrentMission == gameMissions.accessComputerMission)
         {
             Debug.Log("Computer: Completando misión de acceso");
             MissionManager.Instance.CompleteMission();
         }
-        
+
         TurnOnComputer();
     }
 
     private void TurnOnComputer()
     {
         computerScreen.SetActive(true);
-        
+
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-        
+
         if (freeLookCamera != null)
         {
             cameraWasActive = freeLookCamera.enabled;
@@ -115,15 +115,15 @@ public class Computer : MonoBehaviour, IInteractable
     {
         Debug.Log("Computer: Apagando computadora");
         computerScreen.SetActive(false);
-        
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        
+
         if (freeLookCamera != null)
         {
             freeLookCamera.enabled = cameraWasActive; // Restaurar estado previo de la cámara
         }
-        
+
         // Limpiar estado
         currentDraggedFile = null;
         droppedFile = null;
@@ -146,12 +146,14 @@ public class Computer : MonoBehaviour, IInteractable
         Debug.Log($"Computer: Archivo soltado en drop zone: {file.FileName}");
         droppedFile = file;
         submitButton.interactable = true;
+
+        file.ResetPosition();
     }
 
     private void HandleSubmission()
     {
         Debug.Log("Computer: Iniciando proceso de envío");
-        
+
         if (droppedFile == null)
         {
             Debug.LogError("Computer: No hay archivo para enviar");
@@ -159,12 +161,12 @@ public class Computer : MonoBehaviour, IInteractable
         }
 
         Debug.Log($"Computer: Archivo actual: {droppedFile.FileName}, Archivo esperado: {correctFileName}");
-        
+
         if (droppedFile.FileName == correctFileName)
         {
             Debug.Log("Computer: Nombre de archivo correcto");
-            
-            if (MissionManager.Instance != null && 
+
+            if (MissionManager.Instance != null &&
                 MissionManager.Instance.CurrentMission == gameMissions.submitWorkMission)
             {
                 Debug.Log("Computer: Misión correcta, completando envío");
@@ -183,7 +185,7 @@ public class Computer : MonoBehaviour, IInteractable
             Debug.Log("Computer: Archivo incorrecto");
             UIManager.Instance.ShowMessage("Has enviado el archivo incorrecto.", true);
         }
-        
+
         droppedFile.ResetPosition();
         droppedFile = null;
         submitButton.interactable = false;

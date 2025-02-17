@@ -8,6 +8,7 @@ public class DraggableFile : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 {
     [SerializeField] private TextMeshProUGUI fileNameText;
     [SerializeField] private string fileName;
+    [SerializeField] private Transform fileGrid;
     
     public string FileName => fileName;
     
@@ -15,14 +16,12 @@ public class DraggableFile : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public event Action<DraggableFile> OnDragEnded;
     
     private RectTransform rectTransform;
-    private Vector2 originalPosition;
     private CanvasGroup canvasGroup;
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
-        originalPosition = rectTransform.anchoredPosition;
         
         if (fileNameText != null)
         {
@@ -47,16 +46,23 @@ public class DraggableFile : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
         OnDragEnded?.Invoke(this);
-        
-        // Si no se soltó en la zona de drop, volver a la posición original
-        if (!eventData.pointerEnter || !eventData.pointerEnter.GetComponent<DropZone>())
-        {
-            ResetPosition();
-        }
     }
 
     public void ResetPosition()
     {
-        rectTransform.anchoredPosition = originalPosition;
+        if (fileGrid != null)
+        {
+            transform.SetParent(fileGrid);
+            
+            // Forzar actualización del GridLayoutGroup
+            LayoutRebuilder.ForceRebuildLayoutImmediate(fileGrid as RectTransform);
+            
+            // También podemos forzar la actualización del Canvas
+            Canvas.ForceUpdateCanvases();
+        }
+        else
+        {
+            Debug.LogError($"FileGrid reference is missing for {gameObject.name}");
+        }
     }
 }

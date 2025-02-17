@@ -36,16 +36,14 @@ public class SearchableObject : MonoBehaviour, IInteractable
 
             // Verificar si esta llave completa la misión actual
             var currentMission = MissionManager.Instance.CurrentMission;
-            if ((currentMission == gameMissions.findMainKeyMission && keyToFind.keyType == KeyType.MainDoor) ||
-                (currentMission == gameMissions.findClassroomKeyMission && keyToFind.keyType == KeyType.ClassroomDoor))
+            if (currentMission == gameMissions.findMainKeyMission && keyToFind.keyType == KeyType.MainDoor)
             {
                 MissionManager.Instance.CompleteMission();
-                
-                // Solo para la llave principal, iniciar la siguiente misión
-                if (keyToFind.keyType == KeyType.MainDoor)
-                {
-                    MissionManager.Instance.StartMission(gameMissions.enterSchoolMission);
-                }
+                MissionManager.Instance.StartMission(gameMissions.enterSchoolMission);
+            }
+            else if (currentMission == gameMissions.findClassroomKeyMission && keyToFind.keyType == KeyType.ClassroomDoor)
+            {
+                UIManager.Instance.ShowMessage("Has encontrado la llave. Vuelve a hablar con la secretaria.");
             }
         }
         else

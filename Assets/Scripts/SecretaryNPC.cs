@@ -101,6 +101,7 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
                     playerInventory.HasKey(KeyType.ClassroomDoor))
                 {
                     MissionManager.Instance.CompleteMission();
+                    MissionManager.Instance.StartMission(gameMissions.accessComputerMission);
                     uiManager.ShowMessage("Puedes acceder al aula de informática");
                 }
                 break;

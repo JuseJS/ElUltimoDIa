@@ -122,7 +122,7 @@ public class GameManager : MonoBehaviour
         ChangeGameState(victory ? GameState.Victory : GameState.GameOver);
 
         string timeLeft = FormatTimeLeft(RemainingTime);
-        string missionsCompleted = $"{completedMissions}/6";
+        string missionsCompleted = $"{completedMissions}/7";
 
         endGameScreen.SetupButtons(
             () => RestartGame(),

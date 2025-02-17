@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System;
 
 public class GameManager : MonoBehaviour
@@ -9,16 +10,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private EndGameScreen endGameScreen;
 
     [Header("Game Settings")]
-    [SerializeField] private float gameDuration = 1200f; // 20 minutos en segundos
-    [SerializeField] private MissionData missionData; // Referencia a las misiones del juego
+    [SerializeField] private float gameDuration = 1200f;
+    [SerializeField] private MissionData missionData;
     
     public GameState CurrentGameState { get; private set; }
     public float RemainingTime { get; private set; }
     public event Action<GameState> OnGameStateChanged;
     public event Action<float> OnTimeUpdated;
 
-    private int totalMissions = 6; // Total de misiones en el juego
-    private int completedMissions = 0; // Contador de misiones completadas
+    private int completedMissions = 0;
 
     private void Awake()
     {
@@ -39,6 +39,32 @@ public class GameManager : MonoBehaviour
         RemainingTime = gameDuration;
         completedMissions = 0;
         ChangeGameState(GameState.Playing);
+        
+        // Suscribirse al evento de misión completada
+        if (MissionManager.Instance != null)
+        {
+            MissionManager.Instance.OnMissionCompleted += HandleMissionCompleted;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Desuscribirse de eventos al destruir
+        if (MissionManager.Instance != null)
+        {
+            MissionManager.Instance.OnMissionCompleted -= HandleMissionCompleted;
+        }
+    }
+
+    private void HandleMissionCompleted(Mission mission)
+    {
+        completedMissions++;
+        Debug.Log($"Misión completada. Total: {completedMissions}");
+        
+        if (mission.nextMission == null)
+        {
+            GameOver(true);
+        }
     }
 
     private void Update()
@@ -64,11 +90,9 @@ public class GameManager : MonoBehaviour
     {
         ChangeGameState(victory ? GameState.Victory : GameState.GameOver);
         
-        // Calcular estadísticas
         string timeLeft = FormatTimeLeft(RemainingTime);
-        string missionsCompleted = $"{completedMissions}/{totalMissions}";
+        string missionsCompleted = $"{completedMissions}/6";
         
-        // Configurar y mostrar la pantalla
         endGameScreen.SetupButtons(
             () => RestartGame(),
             () => ReturnToMenu()
@@ -79,20 +103,10 @@ public class GameManager : MonoBehaviour
 
     private string FormatTimeLeft(float timeInSeconds)
     {
-        timeInSeconds = Mathf.Max(0, timeInSeconds); // Asegurarse de que no sea negativo
+        timeInSeconds = Mathf.Max(0, timeInSeconds);
         int minutes = Mathf.FloorToInt(timeInSeconds / 60);
         int seconds = Mathf.FloorToInt(timeInSeconds % 60);
         return $"{minutes:00}:{seconds:00}";
-    }
-
-    public void IncrementCompletedMissions()
-    {
-        completedMissions++;
-        // Opcional: Verificar victoria si se completaron todas las misiones
-        if (completedMissions >= totalMissions)
-        {
-            GameOver(true);
-        }
     }
 
     public void PauseGame()
@@ -121,17 +135,44 @@ public class GameManager : MonoBehaviour
 
     private void RestartGame()
     {
-        endGameScreen.Hide();
-        InitializeGame();
-        // Aquí puedes añadir lógica adicional de reinicio
-        // como recargar la escena o resetear otros componentes
+        // Asegurarse de que el tiempo esté normalizado
+        Time.timeScale = 1f;
+        
+        // Ocultar la pantalla de fin de juego
+        if (endGameScreen != null)
+        {
+            endGameScreen.Hide();
+        }
+        
+        // Restablecer el estado del juego
+        RemainingTime = gameDuration;
+        completedMissions = 0;
+        ChangeGameState(GameState.Playing);
+        
+        // Reiniciar el KeySearchManager
+        if (KeySearchManager.Instance != null)
+        {
+            Destroy(KeySearchManager.Instance.gameObject);
+        }
+        
+        // Reiniciar el MissionManager
+        if (MissionManager.Instance != null)
+        {
+            Destroy(MissionManager.Instance.gameObject);
+        }
+        
+        // Recargar la escena actual
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.name);
     }
     
     private void ReturnToMenu()
     {
-        endGameScreen.Hide();
-        // Aquí puedes añadir la lógica para volver al menú principal
-        // Por ejemplo:
-        // SceneManager.LoadScene("MainMenu");
+        Time.timeScale = 1f;
+        if (endGameScreen != null)
+        {
+            endGameScreen.Hide();
+        }
+        //SceneManager.LoadScene("MainMenu");
     }
 }

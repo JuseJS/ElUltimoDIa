@@ -44,11 +44,11 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
         }
         else if (currentMission == gameMissions.findClassroomKeyMission)
         {
+            if (playerInventory.HasKey(KeyType.ClassroomDoor))
+            {
+                return foundKeyDialogue;
+            }
             return searchKeyDialogue;
-        }
-        else if (currentMission == gameMissions.accessComputerMission && playerInventory.HasKey(KeyType.ClassroomDoor))
-        {
-            return foundKeyDialogue;
         }
         else if (currentMission == gameMissions.submitWorkMission || 
                  currentMission == gameMissions.returnKeykMission)
@@ -97,8 +97,10 @@ public class SecretaryNPC : MonoBehaviour, IInteractable
                 break;
 
             case DialogueAction.StartGoToClassMission:
-                if (MissionManager.Instance.CurrentMission == gameMissions.accessComputerMission)
+                if (MissionManager.Instance.CurrentMission == gameMissions.findClassroomKeyMission &&
+                    playerInventory.HasKey(KeyType.ClassroomDoor))
                 {
+                    MissionManager.Instance.CompleteMission();
                     uiManager.ShowMessage("Puedes acceder al aula de informática");
                 }
                 break;
